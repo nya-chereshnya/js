@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      "use strict";
+
+      function sequence(start, step) {
+        let num = start - step;
+        return function () {
+          num += step;
+          return num;
+        };
+      }
+
+      let generator = sequence(1, 1);
+      // console.log(generator());
+
+      function take(gen, x) {
+        let arr = [];
+        for (let i = 0; i < x; i++) {
+          arr[i] = gen();
+        }
+        return arr;
+      }
+      let gen = sequence(1, 1);
+      let gen2 = sequence(0, 2);
+      // console.log(take(gen2, 5));
+
+      function square(x) {
+        return x * x;
+      }
+
+      function map(fn, array) {
+        let result = array.map(fn);
+        return result;
+      }
+
+      // console.log(map(square, [1, 2, 3, 4]));
+
+      function fmap(a, gen) {
+        return function (...args) {
+          return a(gen.apply(this, args));
+        };
+      }
+
+      function add(a, b) {
+        return a + b;
+      }
+
+      let squareAdd = fmap(square, add);
+      let squareGen = fmap(square, gen);
+      // console.log(squareAdd(2, 3));
+      // console.log(squareGen());
+      // console.log(squareGen());
+
+      let partial =
+        (fn, ...args) =>
+        (...args2) =>
+          fn.apply(this, args.concat(args2));
+
+      function mult(a, b, c, d) {
+        return a * b * c * d;
+      }
+
+      let add5 = partial(add, 5);
+      // console.log(add5(2));
+      // console.log(add5(10));
+      // console.log(add5(8));
+
+      // let mult23 = partial(mult, 2, 3);
+
+      // console.log(mult23(4, 5));
+      // console.log(mult23(1, 1));
+
+      let partialAny =
+        (fn, ...args) =>
+        (...new_args) =>
+          fn.apply(
+            this,
+            args.map(function (item, index) {
+              let i = -1;
+              if (item === undefined) {
+                i++;
+                return new_args[i];
+              }
+              return item;
+            })
+          );
+
+      function test(a, b, c) {
+        return "a=" + a + ",b=" + b + ",c=" + c;
+      }
+      var test1_3 = partialAny(test, 1, undefined, 3);
+      // console.log(test1_3(5)); // a=1,b=5,c=3
+
+      let pluck = (objs, property) => objs.map((obj) => obj[property]);
+
+      var characters = [
+        { name: "barney", age: 36 },
+        { name: "fred", age: 40 },
+      ];
+
+      // console.log(pluck(characters, "name")); // ['barney', 'fred']
+
+      let filter = (arr, isNum) => arr.filter(isNum);
+
+      var input = [1, 2, 3, 4, 5, 6];
+      function isEven(x) {
+        return x % 2 == 0;
+      } // проверяет на четность
+      // console.log(filter(input, isEven)); // [2, 4, 6]
+
+      let count = (obj) => Object.keys(obj).length;
+
+      let arr = [
+        { coutry: "Япония", city: "Токио — Иокогама", population: 4584 },
+        { coutry: "Индонезия", city: "Джакарта", population: 9521 },
+        { coutry: "Индия", city: "Дели", population: 13749 },
+        { coutry: "Китай", city: "Гуанчжоу — Фошань", population: 5941 },
+        { coutry: "Филиппины", city: "Манила", population: 13039 },
+      ];
+
+      function sort(N, array) {
+        let len = array.length;
+        if (N <= len) {
+          console.log(
+            array
+              .sort((a, b) => (a.population > b.population ? 1 : -1))
+              .reverse()
+              .slice(0, N)
+          );
+        }
+      }
+
+      function Hamburger(size, stuffing) {
+        this.size = size;
+        this.stuffing = stuffing;
+        this.topping = [];
+      }
+
+      Hamburger.SIZE_SMALL = {
+        param: "SIZE_SMALL",
+        price: 50,
+        calories: 20,
+      };
+      Hamburger.SIZE_LARGE = {
+        param: "SIZE_LARGE",
+        price: 100,
+        calories: 40,
+      };
+      Hamburger.STUFFING_CHEESE = {
+        param: "STUFFING_CHEESE",
+        price: 10,
+        calories: 20,
+      };
+      Hamburger.STUFFING_SALAD = {
+        param: "STUFFING_SALAD",
+        price: 20,
+        calories: 5,
+      };
+      Hamburger.STUFFING_POTATO = {
+        param: "STUFFING_POTATO",
+        price: 15,
+        calories: 10,
+      };
+      Hamburger.TOPPING_MAYO = {
+        param: "TOPPING_MAYO",
+        price: 15,
+        calories: 0,
+      };
+      Hamburger.TOPPING_SPICE = {
+        param: "TOPPING_SPICE",
+        price: 20,
+        calories: 5,
+      };
+
+      Hamburger.prototype.addTopping = function (topping) {
+        this.topping.push(topping);
+      };
+
+      Hamburger.prototype.removeTopping = function (topping) {
+        this.topping = this.topping.filter((e) => e !== topping);
+      };
+
+      Hamburger.prototype.getToppings = function () {
+        return this.topping.map((currentObj) => currentObj.param);
+      };
+
+      Hamburger.prototype.getSize = function () {
+        return this.size.param;
+      };
+
+      Hamburger.prototype.getStuffing = function () {
+        return this.stuffing.param;
+      };
+
+      Hamburger.prototype.calculatePrice = function () {
+        this.priceSum = 0;
+        this.priceSum += this.size.price;
+        this.priceSum += this.stuffing.price;
+        this.topping.forEach(
+          (currentObj) => (this.priceSum += currentObj.price)
+        );
+        return this.priceSum;
+      };
+
+      Hamburger.prototype.calculateCalories = function () {
+        this.caloriesSum = 0;
+        this.caloriesSum += this.size.calories;
+        this.caloriesSum += this.stuffing.calories;
+        this.topping.forEach(
+          (currentObj) => (this.caloriesSum += currentObj.calories)
+        );
+        return this.caloriesSum;
+      };
+
+      // let lol = new Hamburger(Hamburger.SIZE_SMALL, Hamburger.STUFFING_CHEESE);
+      // console.log(lol.calculatePrice(), "price");
+      // lol.addTopping(Hamburger.TOPPING_MAYO);
+      // console.log(lol.calculatePrice(), "price");
+      // console.log(lol.getToppings());
+      // console.log("\n");
+      // lol.addTopping(Hamburger.TOPPING_SPICE);
+      // console.log(lol.calculatePrice(), "price");
+      // console.log(lol.getToppings());
+      // console.log("\n");
+      // lol.removeTopping(Hamburger.TOPPING_MAYO);
+      // console.log(lol.calculatePrice(), "price");
+      // console.log(lol.getToppings());
+      // console.log(lol.getSize(), "size");
+      // console.log(lol.getToppings(), "toppings");
+      // lol.addTopping(Hamburger.TOPPING_SPICE);
+      // console.log(lol.calculatePrice(), "price");
+      // console.log(lol.getToppings(), "toppings");
+      // console.log(lol.getStuffing(), "stuffing");
+      // console.log(lol.calculatePrice(), "price");
+      // console.log(lol.calculateCalories());
+      // маленький гамбургер с начинкой из сыра
+      // var hamburger = new Hamburger(
+      //   Hamburger.SIZE_SMALL,
+      //   Hamburger.STUFFING_CHEESE
+      // );
+      // // добавка из майонеза
+      // hamburger.addTopping(Hamburger.TOPPING_MAYO);
+      // // спросим сколько там калорий
+      // console.log("Calories: %f", hamburger.calculateCalories());
+      // // сколько стоит
+      // console.log("Price: %f", hamburger.calculatePrice());
+      // // я тут передумал и решил добавить еще приправу
+      // hamburger.addTopping(Hamburger.TOPPING_SPICE);
+      // // А сколько теперь стоит?
+      // console.log("Price with sauce: %f", hamburger.calculatePrice());
+      // // Проверить, большой ли гамбургер?
+      // console.log(
+      //   "Is hamburger large: %s",
+      //   hamburger.getSize() === Hamburger.SIZE_LARGE
+      // ); // -> false
+      // // Убрать добавку
+      // hamburger.removeTopping(Hamburger.TOPPING_SPICE);
+      // console.log("Have %d toppings", hamburger.getToppings().length); // 1
+      class Device {
+        getPowerDay() {}
+        getPowerNight() {}
+      }
+
+      class ElectroStation extends Device {
+        constructor(amount, power) {
+          if (power < 0) {
+            throw new SyntaxError("negative value");
+          } else {
+            super();
+            this.amount = amount;
+            this.power = power;
+          }
+        }
+
+        getPowerDay() {
+          return this.power * this.amount * 1000000;
+        }
+
+        getPowerNight() {
+          return this.power * this.amount * 1000000;
+        }
+      }
+
+      class SolarPanel extends Device {
+        constructor(amount, powerDay) {
+          if (powerDay < 0) {
+            throw new SyntaxError("negative value");
+          } else {
+            super();
+            this.amount = amount;
+            this.powerDay = powerDay;
+          }
+        }
+
+        getPowerDay() {
+          return this.powerDay * this.amount * 1000000;
+        }
+
+        getPowerNight() {
+          return 0;
+        }
+      }
+
+      class House extends Device {
+        constructor(amount, powerDay, powerNight, apartment) {
+          if (powerDay > 0) {
+            throw new SyntaxError("positive value");
+          } else {
+            super();
+            this.amount = amount;
+            this.powerDay = powerDay;
+            this.powerNight = powerNight;
+            this.apartment = apartment;
+          }
+        }
+
+        getPowerDay() {
+          return this.powerNight * this.amount * this.apartment * 4000;
+        }
+
+        getPowerNight() {
+          return this.powerNight * this.amount * this.apartment * 1000;
+        }
+      }
+
+      class PowerLine {
+        constructor(power, pricePerWatt, amount) {
+          this.power = power;
+          this.pricePerWatt = pricePerWatt;
+          this.amount = amount;
+        }
+
+        getPrice() {
+          return this.power * this.pricePerWatt * this.amount;
+        }
+
+        getPower() {
+          return this.power * 1000000;
+        }
+
+        getPricePerWatt() {
+          return this.pricePerWatt;
+        }
+      }
+
+      class Calculate {
+        constructor(...objs) {
+          this.devices = objs.filter(
+            (obj) => obj instanceof PowerLine == false
+          );
+          this.powerLines = objs.filter(
+            (obj) => obj instanceof PowerLine == true
+          );
+          this.summaryPowerDay = 0;
+          this.summaryPowerNight = 0;
+        }
+
+        getAllDevices() {
+          return this.devices;
+        }
+
+        getAllPowerLines() {
+          return this.powerLines;
+        }
+
+        calcDayNightDevicesPower() {
+          for (let device of this.devices) {
+            this.summaryPowerDay += device.getPowerDay();
+            this.summaryPowerNight += device.getPowerNight();
+          }
+        }
+
+        sortPowerlines() {
+          this.powerLines.sort((a, b) =>
+            a.getPrice() > b.getPrice() ? 1 : -1
+          );
+        }
+
+        calcDayBalance() {
+          this.calcDayNightDevicesPower();
+          this.powerLinesSumDay = 0;
+          for (let powerLine of this.powerLines) {
+            if (this.powerLinesSumDay >= this.summaryPowerDay) {
+              // console.log(this.powerLinesSumDay);
+              break;
+            }
+            this.powerLinesSumDay += powerLine.getPower();
+          }
+        }
+
+        sum(arr) {
+          sum = 0;
+          return () => arr.forEach((elem) => (sum += elem()));
+        }
+
+        calcNightBalance() {
+          this.calcDayNightDevicesPower();
+          this.powerLinesSumNight = 0;
+          for (let powerLine of this.powerLines) {
+            if (this.powerLinesSumNight >= this.summaryPowerNight) {
+              // console.log(this.powerLinesSumNight);
+              break;
+            }
+            this.powerLinesSumNight += powerLine.getPower();
+          }
+        }
+
+        checkDayDifference() {
+          this.calcDayBalance();
+          console.log(this.powerLines);
+          // this.dayDifference =
+          //   // this.powerLinesSumDay -
+          //   // this.summaryPowerDay +
+          //   this.powerLines
+          //     .filter((obj) => obj.getPower() > this.summaryPowerDay)
+          //     // .map((obj) => obj.getPower())
+          //     .reduce((sum, elem) => (sum += elem), 0);
+          console.log(this.powerLinesSumDay);
+        }
+      }
+
+      let calc = new Calculate(
+        new House(1, -1, -1, 1),
+        new SolarPanel(1, 1),
+        new ElectroStation(1, 1),
+        new PowerLine(1, 1, 1),
+        new PowerLine(1, 1, 1),
+        new PowerLine(1, 1, 1),
+        new PowerLine(1, 1, 1)
+      );
+      calc.checkDayDifference();
+      // calc.calcNightBalance();
+    </script>
+  </body>
+</html>
